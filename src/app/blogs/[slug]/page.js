@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import Image from 'next/image';
+import DOMPurify from 'isomorphic-dompurify';
 
 // Function to read blogs data
 function getBlogs() {
@@ -15,21 +16,21 @@ function getBlogs() {
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
-  
+
   const blogs = getBlogs();
   const blog = blogs.find((blog) => blog.slug === slug);
-  
+
   if (!blog) {
     return {
       title: 'Blog Not Found',
     };
   }
-  
+
   return {
     title: `${blog.title}`,
     description: blog.metaDescription || blog.excerpt || blog.content.substring(0, 160),
     keywords: blog.tags,
-    
+
     openGraph: {
       title: blog.title,
       description: blog.metaDescription || blog.excerpt || blog.content.substring(0, 160),
@@ -44,9 +45,9 @@ export async function generateMetadata({ params }) {
         },
       ],
     },
-     alternates: {
-    canonical:blog.conincalUrl,
-  },
+    alternates: {
+      canonical: blog.conincalUrl,
+    },
     twitter: {
       card: 'summary_large_image',
       title: blog.title,
@@ -121,7 +122,7 @@ function BlogContent({ content }) {
   return (
     <div className="blog-content">
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
-      <div dangerouslySetInnerHTML={{ __html: content }} />
+      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }} />
     </div>
   );
 }
@@ -129,10 +130,10 @@ function BlogContent({ content }) {
 export default async function SingleBlogPage({ params }) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
-  
+
   const blogs = getBlogs();
   const blog = blogs.find((blog) => blog.slug === slug);
-  
+
   if (!blog) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -140,7 +141,7 @@ export default async function SingleBlogPage({ params }) {
           <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 border border-blue-100">
             <h1 className="text-4xl font-bold bg-gradient-to-br from-blue-900 via-blue-800 to-teal-600 bg-clip-text text-transparent mb-4">Blog Not Found</h1>
             <p className="text-gray-700 mb-4">Could not find blog with slug: {slug}</p>
-            <Link 
+            <Link
               href="/blogs"
               className="inline-block bg-gradient-to-br from-blue-900 via-blue-800 to-teal-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition duration-300"
             >
@@ -161,8 +162,8 @@ export default async function SingleBlogPage({ params }) {
   return (
     <article className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-50">
       <div className="relative w-full h-80 md:h-96 max-w-6xl mx-auto">
-        <Image 
-          src={blog.image || '/images/urology-blog-hero.jpg'} 
+        <Image
+          src={blog.image || '/images/urology-blog-hero.jpg'}
           alt={blog.alt || blog.title}
           fill
           priority
@@ -173,7 +174,7 @@ export default async function SingleBlogPage({ params }) {
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-md">{blog.title}</h1>
         </div>
       </div>
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 md:p-10 border border-blue-100">
           <div className="flex items-center mb-8 pb-4 border-b border-blue-100">
@@ -189,7 +190,7 @@ export default async function SingleBlogPage({ params }) {
               </div>
             </div>
           </div>
-          
+
           {blog.tags && (
             <div className="flex flex-wrap gap-2 mb-6">
               {blog.tags.map((tag, index) => (
@@ -199,11 +200,11 @@ export default async function SingleBlogPage({ params }) {
               ))}
             </div>
           )}
-          
+
           <BlogContent content={blog.content} />
-          
+
           <div className="mt-10 pt-6 border-t border-blue-100">
-            <Link 
+            <Link
               href="/blog"
               className="inline-block bg-gradient-to-br from-blue-900 via-blue-800 to-teal-600 text-white px-6 py-3 rounded-lg hover:opacity-90 transition duration-300 shadow-md"
             >
